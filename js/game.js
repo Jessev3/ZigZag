@@ -1,6 +1,6 @@
 var config = {
     type: Phaser.AUTO,
-    width: 550,
+    width: 600,
     height: 1000,
     backgroundColor: '#ffffff',
     scale: {
@@ -28,31 +28,39 @@ function preload ()
 
 function create ()
 {
+    // this.game.physics.startSystem(Phaser.Physics.ARCADE);
     // random number between 1 and 3 to decide the length of the row
-    
     var x = 275;
     var y = 650;
+    var width = 120;
+    var height = 130;
     var depth = 1000;
     var ball = this.add.image(275, 525, 'ball');
     ball.scale = 0.2;
     ball.depth = depth;
-    var startingBox = this.add.isobox(275, 650, 120, 130, 0x00b9f2, 0x016fce, 0x028fdf);
+    var startingBox = this.add.isobox(x, y, width, height, 0x00b9f2, 0x016fce, 0x028fdf);
     startingBox.depth = depth - 1;
 
-    for (var loop = 1; loop <= 10; loop++) {
+    for (var loop = 1; loop <= 20; loop++) {
         var randomInt = Math.floor(Math.random() * 2) + 1;
         if(loop % 2 !== 0) {
             for(var right = 1; right <= randomInt; right++) {
-                x += 60;
-                y -= 30;
+                if(x + (width / 2) > 540) {
+                    break;
+                }
+                x += width / 2;
+                y -= width / 4;
                 var box = this.add.isobox(x, y, 120, 130, 0x00b9f2, 0x016fce, 0x028fdf);
                 box.depth = depth -= 1;
                 box.showLeft = false;
             }
         } else {
             for(var left = 1; left <= randomInt; left++) {
-                x -= 60;
-                y -= 30;
+                if(x - (width / 2) < 30) {
+                    break;
+                }
+                x -= width / 2;
+                y -= width / 4;
                 var box = this.add.isobox(x, y, 120, 130, 0x00b9f2, 0x016fce, 0x028fdf);
                 box.depth = depth -= 1;
                 box.showLeft = true;
@@ -69,16 +77,24 @@ function create ()
 
     // TESTING
     // https://labs.phaser.io/edit.html?src=src/game%20objects/shapes/iso%20box.js&v=3.55.2
-    var t1 = this.add.isobox(150, 500, 200, 300, 0x00b9f2, 0x016fce, 0x028fdf);
+    // var t1 = this.add.isobox(150, 500, 200, 300, 0x00b9f2, 0x016fce, 0x028fdf);
 
-    var t2 = this.add.isobox(250, 450, 200, 300, 0xffe31f, 0xf2a022, 0xf8d80b);
+    // var t2 = this.add.isobox(250, 450, 200, 300, 0xffe31f, 0xf2a022, 0xf8d80b);
 
-    var t3 = this.add.isobox(150, 400, 200, 300, 0x8dcb0e, 0x3f8403, 0x63a505);
-    // t3.showLeft = false;
-    t1.depth = 101;
-    t2.depth = 2;
-    t3.depth = 1;
-    t3.showRight = false;
-    t2.projection = 4;
-    t2.showLeft = false;
+    // var t3 = this.add.isobox(150, 400, 200, 300, 0x8dcb0e, 0x3f8403, 0x63a505);
+    // // t3.showLeft = false;
+    // t1.depth = 101;
+    // t2.depth = 2;
+    // t3.depth = 1;
+    // t3.showRight = false;
+    // t2.projection = 4;
+    // t2.showLeft = false;
+    var cursors = game.input.keyboard.createCursorKeys();
+}
+
+function update() {
+    if (cursors.up.isDown)
+    {
+        game.camera.y -= 4;
+    }
 }
