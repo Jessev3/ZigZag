@@ -12,7 +12,7 @@ class MainScene extends Phaser.Scene {
 
     create ()
     {
-        
+        this.isOnPlatform = true;
 
         // Set all vars for creating platforms
         this.x = 300;
@@ -23,7 +23,7 @@ class MainScene extends Phaser.Scene {
 
         // Create ball sprite
         this.ball = this.physics.add.sprite(300, 590, 'ball');
-        this.ball.scale = 0.05;
+        this.ball.scale = 0.2;
         this.ball.depth = 10000;  
 
         // set speed of ball
@@ -44,7 +44,7 @@ class MainScene extends Phaser.Scene {
 
         // create starting polygon to detect if ball is inside or outside the isobox
         this.graphics = this.add.graphics();
-        this.polygons = []
+        this.polygons = [];
         this.startingPolygon = new Phaser.Geom.Polygon([
             this.startingPlatform.getTopCenter().x - 60, this.startingPlatform.getTopCenter().y - 30,
             this.startingPlatform.getTopCenter().x, this.startingPlatform.getTopCenter().y - 60,
@@ -52,9 +52,6 @@ class MainScene extends Phaser.Scene {
             this.startingPlatform.getTopCenter().x, this.startingPlatform.getTopCenter().y
         ]);
         this.polygons.push(this.startingPolygon);
-        this.graphics.fillStyle(0x00aa00);
-        this.graphics.fillPoints(this.startingPolygon.points, true); 
-        this.graphics.depth = 1000;
 
 
         // set camera settings
@@ -65,35 +62,44 @@ class MainScene extends Phaser.Scene {
         // create first platforms, then every 2 seconds 15 platforms
         this.createPlatforms(20); 
 
-        // this.timer = this.time.addEvent({
-        //     delay: 2000 / this.cameraSpeed, //aanpassen
-        //     callback: this.createPlatforms,
-        //     callbackScope: this,
-        //     loop: true
-        // })
-
+        this.timer = this.time.addEvent({
+            delay: 2000 / this.cameraSpeed, //aanpassen
+            callback: this.createPlatforms,
+            callbackScope: this,
+            loop: true
+        })
         
-
         this.spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
         this.input.keyboard.on('keydown-SPACE', () => {
             this.xVelocity == 1 ? this.xVelocity = -1 : this.xVelocity = 1; 
         }, this)
 
+        this.passedPf = [];
     }
 
     update() {
-        // this.cameras.main.y += this.cameraSpeed;
-        // this.ball.x += this.xVelocity;
-        // this.ball.y -= this.yVelocity;
+        this.cameras.main.y += this.cameraSpeed;
+        this.ball.x += this.xVelocity;
+        this.ball.y -= this.yVelocity;
 
-        // overlap or collide   
-
+        // overlap or collide       
         this.polygons.forEach((polygon) => {
             if(Phaser.Geom.Polygon.Contains(polygon, this.ball.x, this.ball.y)) {
-                
+                this.passedPf.push(polygon);
             } 
-        })
+            
+            
+        }) 
+            
+        if(!Phaser.Geom.Polygon.Contains(this.passedPf[this.passedPf.length - 1], this.ball.x, this.ball.y)) {
+            this.ball.body.gravity.y = 1000;
+            // this.ball.depth = this.passedPf[this.passedPf.length - 1] - 10;
+            setTimeout(() => {
+                this.ball.depth = 0;
+            }, 300)
+        }
+
     }
 
     createPlatforms(platformLength = 15) {
@@ -140,9 +146,6 @@ class MainScene extends Phaser.Scene {
             platform.getTopCenter().x + 60, platform.getTopCenter().y - 30,
             platform.getTopCenter().x, platform.getTopCenter().y
         ]);
-        this.graphics.fillStyle(0x00aa00);
-        this.graphics.fillPoints(polygon.points, true); 
-        this.graphics.depth = 1000;
         this.polygons.push(polygon);
     }
 
