@@ -12,6 +12,7 @@ class MainScene extends Phaser.Scene {
 
     create ()
     {
+        this.gameStarted = false;
         this.isOnPlatform = true;
 
         // Set all vars for creating platforms
@@ -55,13 +56,12 @@ class MainScene extends Phaser.Scene {
 
 
         // set camera settings
-        this.cameraSpeed = 0.6;
+        this.cameraSpeed = this.yVelocity;
         this.cameras.main.setViewport(0, 0, 600, 0);
         
 
         // create first platforms, then every 2 seconds 15 platforms
         this.createPlatforms(20); 
-
         this.timer = this.time.addEvent({
             delay: 2000 / this.cameraSpeed, //aanpassen
             callback: this.createPlatforms,
@@ -69,35 +69,53 @@ class MainScene extends Phaser.Scene {
             loop: true
         })
         
-        this.spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
+
+        // Create score text
+        this.score = 0;
+        this.scoreText = this.add.text(30, 30, this.score, {fontSize: '32px', fill: '#000'})
+        this.scoreText.fixedToCamera = true;
+        this.passedPlatforms = [];
+
+        // Create start text
+        this.startText = this.add.text(300, 500, "Press SPACE to start!", {fontSize: '40px', fill: '#000', fontStyle: 'bold'})
+        this.startText.setOrigin();
+        this.startText.depth = 20000;
+
+
+        // If space is pressed, change direciton of ball
         this.input.keyboard.on('keydown-SPACE', () => {
-            this.xVelocity == 1 ? this.xVelocity = -1 : this.xVelocity = 1; 
+            if(this.gameStarted) {
+                this.xVelocity == 1 ? this.xVelocity = -1 : this.xVelocity = 1; 
+                this.addPoints();
+            } else {
+                this.startText.destroy();
+                this.gameStarted = true;
+            }
         }, this)
-
-        this.passedPf = [];
     }
 
     update() {
-        this.cameras.main.y += this.cameraSpeed;
-        this.ball.x += this.xVelocity;
-        this.ball.y -= this.yVelocity;
+        // move the camera, ball and scoretext
+        if(this.gameStarted) {
+            this.cameras.main.y += this.cameraSpeed;
+            this.ball.x += this.xVelocity;
+            this.ball.y -= this.yVelocity;
+            this.scoreText.y -= this.yVelocity;
+        }
 
-        // overlap or collide       
+        // Check each polygon if the ball is on platform, if it is => add to passedPlatform array     
         this.polygons.forEach((polygon) => {
             if(Phaser.Geom.Polygon.Contains(polygon, this.ball.x, this.ball.y)) {
-                this.passedPf.push(polygon);
+                this.passedPlatforms.push(polygon);
             } 
-            
-            
         }) 
             
-        if(!Phaser.Geom.Polygon.Contains(this.passedPf[this.passedPf.length - 1], this.ball.x, this.ball.y)) {
+        if(!Phaser.Geom.Polygon.Contains(this.passedPlatforms[this.passedPlatforms.length - 1], this.ball.x, this.ball.y)) {
             this.ball.body.gravity.y = 1000;
-            // this.ball.depth = this.passedPf[this.passedPf.length - 1] - 10;
-            setTimeout(() => {
-                this.ball.depth = 0;
-            }, 300)
+            this.ball.depth = 0;
+            this.xVelocity = 0;
+            this.restart();
         }
 
     }
@@ -149,4 +167,15 @@ class MainScene extends Phaser.Scene {
         this.polygons.push(polygon);
     }
 
+    addPoints() {
+        this.score += 1;
+        this.scoreText.text = this.score;
+    }
+
+    restart() {
+        setTimeout(() => {
+            this.scene.restart();
+        }, 2000)
+        
+    }
 }
