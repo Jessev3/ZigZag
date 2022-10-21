@@ -75,24 +75,38 @@ class MainScene extends Phaser.Scene {
         this.score = 0;
         this.scoreText = this.add.text(30, 30, this.score, {fontSize: '32px', fill: '#000'})
         this.scoreText.fixedToCamera = true;
+        this.scoreText.depth = this.depth + 1;
         this.passedPlatforms = [];
+
+        // Create highscore text and get highscore from localstorage
+        if(localStorage.getItem("ZigZagHighscore") !== null) {
+            this.highscore = parseInt(localStorage.getItem("ZigZagHighscore"));
+        } else {
+            this.highscore = 0;
+        }
+        this.highscoreText = this.add.text(300, 700, "Your highscore is: " + this.highscore.toString(), {fontSize: '32px', fill: '#000', fontStyle: 'bold'});
+        this.highscoreText.setOrigin();
+        this.highscoreText.depth = this.depth * 2;
 
         // Create start text
         this.startText = this.add.text(300, 500, "Press SPACE to start!", {fontSize: '40px', fill: '#000', fontStyle: 'bold'})
         this.startText.setOrigin();
-        this.startText.depth = 20000;
+        this.startText.depth = this.depth * 2;
 
 
-        // If space is pressed, change direciton of ball
-        this.input.keyboard.on('keydown-SPACE', () => {
+        // If space is pressed, change horizontal direction of ball
+        this.spaceBar = this.input.keyboard.addKey("SPACE");
+        this.spaceBar.on('down', () => {
             if(this.gameStarted) {
-                this.xVelocity == 1 ? this.xVelocity = -1 : this.xVelocity = 1; 
+                // If velocity is positive, make it negative and vice versa
+                Math.sign(this.xVelocity) == 1 ? this.xVelocity = -Math.abs(this.xVelocity) : this.xVelocity = Math.abs(this.xVelocity); 
                 this.addPoints();
             } else {
+                this.highscoreText.destroy();
                 this.startText.destroy();
                 this.gameStarted = true;
             }
-        }, this)
+        })
     }
 
     update() {
@@ -114,10 +128,9 @@ class MainScene extends Phaser.Scene {
         if(!Phaser.Geom.Polygon.Contains(this.passedPlatforms[this.passedPlatforms.length - 1], this.ball.x, this.ball.y)) {
             this.ball.body.gravity.y = 1000;
             this.ball.depth = 0;
-            this.xVelocity = 0;
+            // this.xVelocity = 0;
             this.restart();
         }
-
     }
 
     createPlatforms(platformLength = 15) {
@@ -173,9 +186,11 @@ class MainScene extends Phaser.Scene {
     }
 
     restart() {
+        this.gameStarted = false;
+        localStorage.setItem("ZigZagHighscore", this.score);
+
         setTimeout(() => {
             this.scene.restart();
         }, 2000)
-        
     }
 }
