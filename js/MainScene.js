@@ -7,11 +7,20 @@ class MainScene extends Phaser.Scene {
 
     preload ()
     {
-        this.load.image('ball', 'img/ball.png')
+        this.load.image('ball', 'img/ball.png');
+        this.load.image('platformPowerup', 'img/platformPowerup.png');
     }
 
     create ()
     {
+        // make powerup sprite
+        this.platformPowerup = this.physics.add.sprite(390, 560, 'platformPowerup');
+        this.platformPowerups = this.physics.add.group();
+        this.platformPowerup.scale = 0.1;
+        this.platformPowerup.depth = 100000;
+        this.platformPowerups.add(this.platformPowerup);
+
+
         this.gameStarted = false;
         this.isOnPlatform = true;
 
@@ -28,8 +37,8 @@ class MainScene extends Phaser.Scene {
         this.ball.depth = 10000;  
 
         // set speed of ball
-        this.xVelocity = 1;
-        this.yVelocity = 0.5;
+        this.xVelocity = 1.1;
+        this.yVelocity = 0.6;
 
         
         // create starting platform. Which is always the same
@@ -53,7 +62,6 @@ class MainScene extends Phaser.Scene {
             this.startingPlatform.getTopCenter().x, this.startingPlatform.getTopCenter().y
         ]);
         this.polygons.push(this.startingPolygon);
-
 
         // set camera settings
         this.cameraSpeed = this.yVelocity;
@@ -102,10 +110,15 @@ class MainScene extends Phaser.Scene {
                 Math.sign(this.xVelocity) == 1 ? this.xVelocity = -Math.abs(this.xVelocity) : this.xVelocity = Math.abs(this.xVelocity); 
                 this.addPoints();
             } else {
-                this.highscoreText.destroy();
-                this.startText.destroy();
-                this.gameStarted = true;
+                this.startGame();
             }
+        })
+
+
+        // Execute the powerup if there is a collision between ball and powerup
+        this.physics.add.collider(this.ball, this.platformPowerups, () => {
+            this.platformPowerups.getFirst(true).destroy();
+            this.makePlatformBreed();
         })
     }
 
@@ -116,29 +129,38 @@ class MainScene extends Phaser.Scene {
             this.ball.x += this.xVelocity;
             this.ball.y -= this.yVelocity;
             this.scoreText.y -= this.yVelocity;
+        
+
+
+
+            // Check each polygon if the ball is on platform, if it is -> add to passedPlatform array     
+            this.polygons.forEach((polygon) => {
+                if(Phaser.Geom.Polygon.Contains(polygon, this.ball.x, this.ball.y)) {
+                    this.passedPlatforms.push(polygon);
+                } 
+            }) 
+
+            if(this.passedPlatforms.length > 3) {
+                console.log(this.platforms.getLength());
+            }
+                
+            if(!Phaser.Geom.Polygon.Contains(this.passedPlatforms[this.passedPlatforms.length - 1], this.ball.x, this.ball.y)) {
+                this.ball.body.gravity.y = 1000;
+                this.ball.depth = 0;
+                // this.xVelocity = 0;
+                this.restart();
+            }
+
         }
 
-        // Check each polygon if the ball is on platform, if it is => add to passedPlatform array     
-        this.polygons.forEach((polygon) => {
-            if(Phaser.Geom.Polygon.Contains(polygon, this.ball.x, this.ball.y)) {
-                this.passedPlatforms.push(polygon);
-            } 
-        }) 
-            
-        if(!Phaser.Geom.Polygon.Contains(this.passedPlatforms[this.passedPlatforms.length - 1], this.ball.x, this.ball.y)) {
-            this.ball.body.gravity.y = 1000;
-            this.ball.depth = 0;
-            // this.xVelocity = 0;
-            this.restart();
-        }
     }
 
-    createPlatforms(platformLength = 15) {
-        for (var loop = 1; loop <= platformLength; loop++) {
-            this.loopIteration = loop;
+    createPlatforms(amountOfPlatforms = 15) {
+        for (var loop = 1; loop <= amountOfPlatforms; loop++) {
             var randomInt = Math.floor(Math.random() * 2) + 1;
             if(loop % 2 !== 0) {
                 for(var right = 1; right <= randomInt; right++) {
+                    // check if platform doesnt spawn outside bounds
                     if(this.x + (this.width / 2) > 540) {
                         break;
                     }
@@ -165,6 +187,16 @@ class MainScene extends Phaser.Scene {
                     platform.showRight = false;
                     this.platforms.add(platform);
                     this.createPolygon(platform);
+
+
+
+                    /////////////////////////////////////////
+                    this.newPowerup = this.physics.add.sprite(platform.getTopCenter().x, platform.getTopCenter().y -= 30, 'platformPowerup');
+                    this.newPowerup.depth = 100000;
+                    this.newPowerup.scale = 0.1;
+                    this.platformPowerups.add(this.newPowerup);
+
+                    
                 }
             }
         }
@@ -185,12 +217,51 @@ class MainScene extends Phaser.Scene {
         this.scoreText.text = this.score;
     }
 
+    speedUp() {
+        this.xVelocity += 1;
+        this.yVelocity += 1;
+    }
+
+    startGame() {
+        this.highscoreText.destroy();
+        this.startText.destroy();
+        this.gameStarted = true;
+    }
+
     restart() {
         this.gameStarted = false;
-        localStorage.setItem("ZigZagHighscore", this.score);
+        if(this.score > this.highscore) {
+            localStorage.setItem("ZigZagHighscore", this.score);
+        }
 
         setTimeout(() => {
             this.scene.restart();
         }, 2000)
+    }
+
+    makePlatformBreed() {
+        this.platforms.children.each((platform) => {
+            platform.width = 200;
+        }, this);
+
+
+        this.polygons.forEach((polygon) => {
+            var currentPoints = Phaser.Geom.Polygon.GetPoints(polygon, 4);
+            currentPoints[0].x -= 40;
+            currentPoints[1].y -= 10;
+            currentPoints[3].y += 10;
+            currentPoints[2].x += 40;
+            polygon.setTo(currentPoints);
+            // console.log(Phaser.Geom.Polygon.GetPoints(polygon, 4));
+        })
+    }
+
+    spawnPowerup(platform) {
+        setInterval(() => {
+            this.newPowerup = this.physics.add.sprite(platform.getTopCenter().x, platform.getTopCenter().y, 'platformPowerup');
+            this.newPowerup.depth = 100000;
+            this.newPowerup.scale = 0.1;
+            this.platformPowerups.add(this.newPowerup);
+        }, 1000)
     }
 }
