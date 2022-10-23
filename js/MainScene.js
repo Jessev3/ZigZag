@@ -139,10 +139,13 @@ class MainScene extends Phaser.Scene {
                     this.passedPlatforms.push(polygon);
                 } 
             }) 
+            
 
-            if(this.passedPlatforms.length > 3) {
-                console.log(this.platforms.getLength());
-            }
+            //////////////// PLATFORMS EN POLYGONS DESTROYEN OF ANDERE MANIER VINDEN VOOR POWERUPS. MISSCHIEN ARRAY MET VORIGE DATA 
+            // if(this.passedPlatforms.length > 3) {
+            //     console.log(this.platforms.getLength());
+            // }
+            //////////////////////////////////////////
                 
             if(!Phaser.Geom.Polygon.Contains(this.passedPlatforms[this.passedPlatforms.length - 1], this.ball.x, this.ball.y)) {
                 this.ball.body.gravity.y = 1000;
@@ -167,11 +170,13 @@ class MainScene extends Phaser.Scene {
                     this.x += this.width / 2;
                     this.y -= this.width / 4;
 
-                    var platform = this.add.isobox(this.x, this.y, this.width, this.height, 0x00b9f2, 0x016fce, 0x028fdf);
-                    platform.depth = this.depth -= 1;
-                    platform.showLeft = false;
-                    this.platforms.add(platform);
-                    this.createPolygon(platform);
+                    // var platform = this.add.isobox(this.x, this.y, this.width, this.height, 0x00b9f2, 0x016fce, 0x028fdf);
+                    // platform.depth = this.depth -= 1;
+                    // platform.showLeft = false;
+                    // this.platforms.add(platform);
+                    // this.createPolygon(platform);
+                    this.createPlatformAndAddPolygon(this.x, this.y, this.width, this.height, 'right');
+
                 }
             } else {
                 for(var left = 1; left <= randomInt; left++) {
@@ -181,25 +186,41 @@ class MainScene extends Phaser.Scene {
                     this.x -= this.width / 2;
                     this.y -= this.width / 4;
 
-                    var platform = this.add.isobox(this.x, this.y, this.width, this.height, 0x00b9f2, 0x016fce, 0x028fdf);
-                    platform.depth = this.depth -= 1;
-                    platform.showLeft = true;
-                    platform.showRight = false;
-                    this.platforms.add(platform);
-                    this.createPolygon(platform);
+                    // var platform = this.add.isobox(this.x, this.y, this.width, this.height, 0x00b9f2, 0x016fce, 0x028fdf);
+                    // platform.depth = this.depth -= 1;
+                    // platform.showLeft = true;
+                    // platform.showRight = false;
+                    // this.platforms.add(platform);
+                    // this.createPolygon(platform);
 
+                    this.createPlatformAndAddPolygon(this.x, this.y, this.width, this.height, 'left');
 
 
                     /////////////////////////////////////////
-                    this.newPowerup = this.physics.add.sprite(platform.getTopCenter().x, platform.getTopCenter().y -= 30, 'platformPowerup');
-                    this.newPowerup.depth = 100000;
-                    this.newPowerup.scale = 0.1;
-                    this.platformPowerups.add(this.newPowerup);
-
+                    // this.newPowerup = this.physics.add.sprite(platform.getTopCenter().x, platform.getTopCenter().y -= 30, 'platformPowerup');
+                    // this.newPowerup.depth = 100000;
+                    // this.newPowerup.scale = 0.1;
+                    // this.platformPowerups.add(this.newPowerup);
+                    /////////////////////////////////////////
                     
                 }
             }
         }
+    }
+
+    createPlatformAndAddPolygon(x, y, width, height, leftOrRight) {
+        var platform = this.add.isobox(x, y, width, height, 0x00b9f2, 0x016fce, 0x028fdf);
+        platform.depth = this.depth -= 1;
+
+        if(leftOrRight == "left") {
+            platform.showLeft = true;
+            platform.showRight = false;        
+        } else {
+            platform.showLeft = false;
+        }
+        
+        this.platforms.add(platform);
+        this.createPolygon(platform);
     }
 
     createPolygon(platform) {
@@ -244,16 +265,16 @@ class MainScene extends Phaser.Scene {
             platform.width = 200;
         }, this);
 
-
         this.polygons.forEach((polygon) => {
             var currentPoints = Phaser.Geom.Polygon.GetPoints(polygon, 4);
             currentPoints[0].x -= 40;
-            currentPoints[1].y -= 10;
-            currentPoints[3].y += 10;
+            currentPoints[1].y -= 20; // NOG CHECKEN
+            currentPoints[3].y += 20; // NOG CHECKEN
             currentPoints[2].x += 40;
             polygon.setTo(currentPoints);
             // console.log(Phaser.Geom.Polygon.GetPoints(polygon, 4));
         })
+
     }
 
     spawnPowerup(platform) {
