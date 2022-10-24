@@ -8,6 +8,7 @@ class MainScene extends Phaser.Scene {
     {
         this.load.image('ball', 'img/ball.png');
         this.load.image('platformPowerup', 'img/platformPowerup.png');
+        this.load.script('webfont', '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
     }
 
     create ()
@@ -107,6 +108,16 @@ class MainScene extends Phaser.Scene {
                 this.addPoints();
             } else {
                 this.startGame();
+            }
+        })
+
+
+        // If ESC is pressed, go back to startscreen
+        this.escapeKey = this.input.keyboard.addKey("ESC");
+        this.escapeKey.on('down', () => {
+            if(!this.gameStarted) {
+                this.scene.stop();
+                this.scene.start("StartScene");
             }
         })
 
