@@ -1,5 +1,0 @@
-class PowerUp {
-    constructor() {
-        
-    }
-}

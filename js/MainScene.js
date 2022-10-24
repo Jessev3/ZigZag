@@ -147,16 +147,18 @@ class MainScene extends Phaser.Scene {
     // METHODS
     createPlatforms(amountOfPlatforms = 10) {
         for (var loop = 1; loop <= amountOfPlatforms; loop++) {
-            var randomInt = Math.floor(Math.random() * 3) + 1;
+            var randomInt = Math.floor(Math.random() * 2) + 1;
             if(loop % 2 !== 0) {
                 for(var right = 1; right <= randomInt; right++) {
-                    // check if platform doesnt spawn outside bounds
+                    // check if platform doesn't spawn outside bounds
                     if(this.x + (this.width / 2) > 540) {
                         break;
                     }
+                    // change x and y to the correct position
                     this.x += this.width / 2;
                     this.y -= this.width / 4;
 
+                    // add platform at correct position
                     var platform = this.createPlatformAndAddPolygon(this.x, this.y, this.width, this.height, 'right');
                 }
             } else {
@@ -169,8 +171,7 @@ class MainScene extends Phaser.Scene {
 
                     var platform = this.createPlatformAndAddPolygon(this.x, this.y, this.width, this.height, 'left');
 
-                    // Add a powerup on random platform if there is no powerup active
-                    if(this.score + 1 % 10 == 0 && this.platformPowerups.countActive() == 0) {
+                    if(Math.floor(Math.random() * 40) == 1 && this.platformPowerups.countActive() == 0) {
                         this.placePowerup(platform);
                     }
                 }
@@ -256,13 +257,13 @@ class MainScene extends Phaser.Scene {
             polygon.setTo(currentPoints);
         })
 
-        // After x amount of seconds, change the platforms and polygons back to original state
+        // After 6 seconds, change the platforms and polygons back to original state
         setTimeout(() => {
             this.changedPolygons.forEach((polygon) => {
                 var currentPoints = Phaser.Geom.Polygon.GetPoints(polygon, 4);
                 currentPoints[0].x += 40;
-                currentPoints[1].y += 20; // NOG CHECKEN
-                currentPoints[3].y -= 20; // NOG CHECKEN
+                currentPoints[1].y += 20;
+                currentPoints[3].y -= 20;
                 currentPoints[2].x -= 40;
                 polygon.setTo(currentPoints);
             });
@@ -270,6 +271,6 @@ class MainScene extends Phaser.Scene {
             this.platforms.children.each((platform) => {
                 platform.width = 120;
             });
-        }, 4000);
+        }, 6000);
     }
 }
