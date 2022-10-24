@@ -148,7 +148,7 @@ class MainScene extends Phaser.Scene {
             if(!Phaser.Geom.Polygon.Contains(this.passedPlatforms[this.passedPlatforms.length - 1], this.ball.x, this.ball.y)) {
                 this.ball.body.gravity.y = 1000;
                 this.ball.depth = 0;
-                this.restart();
+                this.restartGame();
             }
         }
 
@@ -182,7 +182,7 @@ class MainScene extends Phaser.Scene {
 
                     var platform = this.createPlatformAndAddPolygon(this.x, this.y, this.width, this.height, 'left');
 
-                    if(Math.floor(Math.random() * 40) == 1 && this.platformPowerups.countActive() == 0) {
+                    if(Math.floor(Math.random() * 50) == 1 && this.platformPowerups.countActive() == 0) {
                         this.placePowerup(platform);
                     }
                 }
@@ -228,18 +228,13 @@ class MainScene extends Phaser.Scene {
         this.scoreText.text = this.score;
     }
 
-    speedUp() {
-        this.xVelocity += 1;
-        this.yVelocity += 1;
-    }
-
     startGame() {
         this.highscoreText.destroy();
         this.startText.destroy();
         this.gameStarted = true;
     }
 
-    restart() {
+    restartGame() {
         this.gameStarted = false;
         if(this.score > this.highscore) {
             localStorage.setItem("ZigZagHighscore", this.score);
